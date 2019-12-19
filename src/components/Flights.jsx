@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
-import { Button, Form } from "reactstrap";
+import { Button, Form, Spinner } from "reactstrap";
 
 import { DateTime } from 'luxon';
 
-const Flights = props => {
+const Flights = (props) => {
 
-    const [currentPage, setCurrentPage] = useState(0);
+    const { currentPage, setCurrentPage, loading, flights} = props;
+
     const perPage = 5;
     const handleBackBtn = (e) => {
         setCurrentPage(Math.max(currentPage - 1, 0))
@@ -15,8 +16,8 @@ const Flights = props => {
         }
     }
     const handleNextBtn = (e) => {
-        setCurrentPage(Math.min(currentPage + 1, Math.ceil(props.flights.length / 5) - 1));
-        if(currentPage >= Math.ceil(props.flights.length / 5) - 2) {
+        setCurrentPage(Math.min(currentPage + 1, Math.ceil(flights.length / 5) - 1));
+        if(currentPage >= Math.ceil(flights.length / 5) - 2) {
             e.target.classList.add('btn-dark')
         }
         document.getElementById("backBtn").classList.remove('btn-dark');
@@ -24,23 +25,21 @@ const Flights = props => {
 
     }
 
-    console.log('flights', props.flights)
-
     let pagination = ('');
     let content = ('');
-    if(props.loading) {
-        content = <div>Loading...</div>
-    } else if(props.loading === undefined){
+    if(loading) {
+        content = <div style={{textAlign: 'center'}}>Loading...  <Spinner size="sm" color="secondary" /></div>
+    } else if(loading === undefined){
         content = (<div>Hello, please choose your flight!</div>);
-    } else if(Array.isArray(props.flights) &&  props.flights.length == 0) {
+    } else if(Array.isArray(flights) &&  flights.length == 0) {
         content = (<div>Sorry, no direct flights...</div>);
     } else {   
-        if(props.flights.length > 5) {
+        if(flights.length > 5) {
             pagination = (
-                <Form>
+                <Form style={{textAlign: 'center'}}>
                     <hr/>
                     <Button color="dark"  onClick={handleBackBtn} id="backBtn">Back</Button>
-                    <span style= {{padding:'2rem'}}>{currentPage + 1}</span>
+                    <span style= {{padding:'2rem'}}>Page: {currentPage + 1}</span>
                     <Button onClick={handleNextBtn} id="nextBtn">Next</Button>
                 </Form>
             )
@@ -48,24 +47,42 @@ const Flights = props => {
         content = (
             <div>
                 <hr/>
-                <div>Number of available flights: { props.flights.length }</div>
+                <div>Number of available flights: { flights.length }</div>
                 <br/>
                 
                 
                 <hr/>
-                {
-                    props.flights.slice(currentPage * perPage, currentPage * perPage + perPage).map((flight, key) => (
-                        <div key={key}>
-                            <div>From: { flight.cityFrom }</div>
-                            <div>To: { flight.cityTo }</div>
-                            <div>Departure Time: { DateTime.fromMillis(flight.dTime * 1000).toFormat('hh:mm') }</div>
-                            <div>Arrival Time: { DateTime.fromMillis(flight.aTime * 1000).toFormat('hh:mm') }</div>
-                            <div>Price: { flight.price } Eur</div>
-                            <div>Transfers: { flight.route.length - 1 }</div>
-                            <hr/>
-                        </div>
+                
+                    <table className="table table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">From:</th>
+                            <th scope="col">To:</th>
+                            <th scope="col">Departure Time:</th>
+                            <th scope="col">Arrival Time:</th>
+                            <th scope="col">Fly duration:</th>
+                            <th scope="col">Transfers:</th>
+                            <th scope="col">Price:</th>
+                            
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {flights.slice(currentPage * perPage, currentPage * perPage + perPage).map((flight, key) => (
+
+                        <tr key={key}>
+                            <td>{ flight.cityFrom }</td>
+                            <td>{ flight.cityTo }</td>
+                            <td>{ DateTime.fromMillis(flight.dTime * 1000).toFormat('DD hh:mm') }</td>
+                            <td>{ DateTime.fromMillis(flight.aTime * 1000).toFormat('DD hh:mm') }</td>
+                            <td>{ flight.fly_duration }</td>
+                            <td>{ flight.pnr_count }</td>
+                            <td>{ flight.price } EUR</td>
+                        </tr>
                     ))
-                }
+                    }
+                    </tbody>
+                </table>
                 
                 
             </div>
@@ -76,8 +93,8 @@ const Flights = props => {
     
     return (
         <>
-            { pagination }
             { content }
+            { pagination }
         </>
     )
 }

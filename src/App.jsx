@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+
+import { Router, Route } from "react-router-dom";
+import history from "./history.js";
+
 import Flights from './components/Flights.jsx';
 import FlightForm from './components/FlightForm.jsx';
+import Navigation from './components/Navigation.jsx';
 
  
 const App = () => {
@@ -8,6 +13,7 @@ const App = () => {
    const [loading, setLoading] = useState ();
    const [departure, setDeparture] = useState ('PRG');
    const [arrival, setArrival] = useState ('VLC');
+   const [currentPage, setCurrentPage] = useState(0);
 
    
     const changeDest = (dep, arr, dir) => {
@@ -20,6 +26,7 @@ const App = () => {
             
             setFlights(data.data);
             setLoading(false); 
+            setCurrentPage(0);
             
         }
         fetchFlights();
@@ -28,14 +35,29 @@ const App = () => {
 
     return (
         <>
-            <h1>Flight with us</h1>
-            <FlightForm
-                onClick = {changeDest}
-                />
-            <Flights
-                flights={flights}
-                loading={loading}
-            />
+        <Router history={history}>
+            <Navigation />
+
+            <Route exact path="/">
+                <div className="container">
+                    <FlightForm
+                        onClick = {changeDest}
+                        />
+                    <Flights
+                        flights={flights}
+                        loading={loading}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                    />
+                </div>
+            </Route>
+
+            <Route exact path="/statistics">
+                <div class="container">
+                    <p>banana</p>
+                </div>
+            </Route>
+        </Router>
         </>
     )
 }
