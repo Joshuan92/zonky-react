@@ -6,6 +6,7 @@ import history from "./history.js";
 import Flights from './components/Flights.jsx';
 import FlightForm from './components/FlightForm.jsx';
 import Navigation from './components/Navigation.jsx';
+import Statistics from './components/Statistics.jsx';
 
  
 const App = () => {
@@ -14,6 +15,14 @@ const App = () => {
    const [departure, setDeparture] = useState ('PRG');
    const [arrival, setArrival] = useState ('VLC');
    const [currentPage, setCurrentPage] = useState(0);
+   const [calculatedData, setCalculatedData] = useState({
+        averagePrice: null,
+        numberOfFlights: null,
+        longestFlight: null,
+        theMostExpensiveFlight: null,
+        theCheapestFlight: null
+   });
+
 
    
     const changeDest = (dep, arr, dir) => {
@@ -27,16 +36,58 @@ const App = () => {
             setFlights(data.data);
             setLoading(false); 
             setCurrentPage(0);
-            
         }
-        fetchFlights();
-        
+        fetchFlights()  
     }
+
+    console.log(flights, 'flights')
+
+    const getCalculatedData = () => {
+        let sum = null
+        let longestFlight = null
+        let indexOfLongestFlight = null
+        let shortestFlight = 1000000000
+        let indexOfShortestFlight = null
+        flights.map((flight, index) => {
+
+            sum += flight.price
+
+            if (flight.duration.total > longestFlight) {
+                 longestFlight = flight.duration.total;
+                 indexOfLongestFlight = index;
+            }
+
+            if (flight.duration.total < shortestFlight ) {
+                shortestFlight = flight.duration.total;
+                indexOfShortestFlight = index;
+           }
+
+            setCalculatedData(prevValues => {
+                return {
+                    ...prevValues,
+                    averagePrice: sum/flights.length,
+                    longestFlight: flights[indexOfLongestFlight].fly_duration,
+                    shortestFlight: flights[indexOfShortestFlight].fly_duration,
+                    theMostExpensiveFlight: flights[flights.length-1].price,
+                    theCheapestFlight: flights[0].price,
+                    numberOfFlights: flights.length,
+
+
+                }
+            })    
+        })
+    }
+
+    useEffect(() => {
+        getCalculatedData()
+    },
+        [flights])
 
     return (
         <>
         <Router history={history}>
-            <Navigation />
+            <Navigation
+            loading={loading} />
 
             <Route exact path="/">
                 <div className="container">
@@ -53,9 +104,10 @@ const App = () => {
             </Route>
 
             <Route exact path="/statistics">
-                <div class="container">
-                    <p>banana</p>
-                </div>
+                <Statistics
+                    calculatedData={calculatedData}
+                    flights={flights}
+                />
             </Route>
         </Router>
         </>
